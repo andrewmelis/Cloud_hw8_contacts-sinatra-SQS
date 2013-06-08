@@ -1,0 +1,18 @@
+<h1><%= @title %></h1>
+
+<p> Subscribe to one of the following awesome topic_names: </p>
+
+<form name="sns_submit" action="/sns" method="post">
+<select name="topic">
+  <option value="<%= @topics[0] %>"><%=@topic_names[0]%></option>
+  <option value="<%= @topics[1] %>"><%=@topic_names[1]%></option>
+  <option value="<%= @topics[2] %>"><%=@topic_names[2]%></option>
+  <option value="<%= @topics[3] %>"><%=@topic_names[3]%></option>
+</select>
+
+  Type in your email or url for subscription :
+  <br>
+  <input type="text" name="endpoint">
+  <input type="submit" value="Submit">
+</form>
+

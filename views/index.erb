@@ -1,0 +1,21 @@
+<h1><%= @title %></h1>
+<p> All Contacts:</p>
+
+<table>
+  <tr>
+    <th>Name</th>
+  </tr>
+
+  <% @contacts.each do |contact| %>
+    <% contact = contact.item %>
+    <% first = contact.attributes[:first].values[0] %>
+    <% last = contact.attributes[:last].values[0] %>
+    <tr>
+      <td><%= link_to $url_base+"#{first}_#{last}.html", first+" "+last %></td>
+    </tr>
+  <% end %>
+  
+</table>
+
+
+

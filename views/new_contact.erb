@@ -1,0 +1,13 @@
+<h1><%= @title %></h1>
+
+
+<form name="sns_submit" action="/new_contact" method="post">
+  Type in the new contact's first and last name:
+  <br>
+  First: <input type="text" name="first" pattern="[A-Za-z]+" maxlength="16" required>
+  <br>
+  Last: <input type="text" name="last" pattern="[A-Za-z]+" maxlength="16" required>
+  <br>
+  <input type="submit" value="Submit">
+</form>
+

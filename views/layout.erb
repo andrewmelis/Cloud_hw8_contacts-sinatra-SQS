@@ -1,0 +1,19 @@
+<html lang="en">
+  <head>
+    <title><%= @title %></title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <header>
+      <nav>
+	<a href="/" title="Index">Index</a>	|    
+	<a href="/sns" title="SNS">SNS</a>	|	 
+	<a href="/new_contact" title="New_Contact">New Contact</a>
+      </nav>
+    </header>
+    <section>
+    <%= yield %>
+    </section>
+    <p> by Andrew Melis
+  </body>
+</html>
