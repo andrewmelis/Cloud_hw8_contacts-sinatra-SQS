@@ -3,20 +3,26 @@ require 'sinatra/reloader' if development?
 require 'sinatra/flash'
 require 'aws-sdk'
 
-AWS.config()	#grabs vars from role
+#AWS.config()	#grabs vars from role
+AWS.config(:access_key_id => ENV['AWS_ACCESS_KEY'], :secret_access_key => ENV['AWS_SECRET_KEY'])	#grabs vars from role
 $s3 = AWS::S3.new()
 $sdb = AWS::SimpleDB.new()
 $sns = AWS::SNS.new(:region => 'us-west-2')
+$sqs = AWS::SQS.new(:region => 'us-west-2')
+
+#Thread.new{system("ruby queue.rb #{$s3} #{$sns} #{$sqs}")}
+#q = SQSQueue.new($s3,$sns,$sqs)
+#Thread.new {SQSQueue.new($s3,$sns,$sqs)}
 
 
-
-$url_base = "https://s3.amazonaws.com/melis_assignment_7/"
-$domain = $sdb.domains['assignment_7']
+$url_base = "https://s3.amazonaws.com/melis_assignment_8/"
+$domain = $sdb.domains['assignment_8']
 
 get '/' do
   @title = "Index"
   @contacts = $domain.items.select('*')
   erb :index
+  
 end
 
 get '/sns' do
@@ -67,25 +73,25 @@ helpers do
 
     generateSimpleDBContact(arr, domain)
 
-    generateFile(arr)
+    send_to_queue(arr)
 
-    sendFile(arr,$s3.buckets["melis_#{domain.name}"])
-    
-    #send notification to 51083-updated
+    #Thread.new {$q.start}	#if don't start on new thread, web page hangs
 
-    publish(arr)
+    #old process, now moved to queue
+    #generateFile(arr)
+
+    #sendFile(arr,$s3.buckets["melis_#{domain.name}"])
+    #
+    ##send notification to 51083-updated
+
+    #publish(arr)
   end
 
-  def publish(arr)
-    arn = "arn:aws:sns:us-west-2:405483072970:51083-updated"   
-    
-    $sns.topics[arn].publish(
-      "The new contact\'s name is #{arr[1]} #{arr[2]}.
-      You can see their contact page at #{$url_base+arr[1]+'_'+arr[2]+'.html'}",
-      :subject => "New Contact Created in 51083")
+  
+  def send_to_queue(arr)
+    queue = $sqs.queues.named("assignment_8_dev")
+    queue.send_message("#{arr[0]} #{arr[1]} #{arr[2]}")
   end
-    
-
 
   #create simple_db entry
   def generateSimpleDBContact(contact_array, domain)
@@ -95,35 +101,7 @@ helpers do
   end
 
 
-  #helper function for newContact
-  #takes in array with first name, last name, and phone number
-  #creates a new html file named using that array
-  #returns a the file for use in sending file up to amazon
-  def generateFile(arr)
-    require 'fileutils'		    #load fileutils module to enable copying behavior
-
-    #copy template_contacts and rename using array
-    #FileUtils.cp 'template_contact.html', "./contacts/#{arr[1].downcase}_#{arr[2].downcase}_#{arr[3].downcase}.html"
-    FileUtils.cp 'template_contact.html', "./contacts/#{arr[1].downcase}_#{arr[2].downcase}.html"
-
-    #append the following lines representing the next row of html table
-    #f = open("./contacts/#{arr[1].downcase}_#{arr[2].downcase}_#{arr[3]}.html", "a") do |f|
-    f = open("./contacts/#{arr[1].downcase}_#{arr[2].downcase}.html", "a") do |f|
-      f << "<td>#{arr[0]}<td/>\n"
-      f << "<td>#{arr[1].capitalize}<td/>\n"
-      f << "<td>#{arr[2].capitalize}<td/>\n"
-      #    f << "<td>#{arr[3]}<td/>\n"
-      f << "</tr>\n</table>"
-    end
-  end
-
-  #helper function for newContact
-  def sendFile(arr,bucket)
-    f = open("./contacts/#{arr[1].downcase}_#{arr[2].downcase}.html", 'r')
-    bucket.objects["#{arr[1].downcase}_#{arr[2].downcase}.html"].write(f, :acl => :public_read)
-  end
-
-
+  
 end
 
 
